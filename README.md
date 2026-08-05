@@ -5,5 +5,3 @@ Professor Sundararajan, V.
 
 ## Contents
 
-Add assignments, notes, experiments, and supporting files here as the semester
-progresses.
