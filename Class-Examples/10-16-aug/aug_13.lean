@@ -52,8 +52,17 @@ theorem all_double_ev2 : ∀ (n : Nat), (ev2 (double_nat_2 n) = true) := by
   | succ m Ih => unfold double_nat_2; unfold ev2; exact Ih;
 
 -- Inductive Predicate named even
+
+/-
+So this must be read as a constructor that takes a predicate and returns a Proposition
+Ofcourse Base Case gives you evp 0 which is true (True in Prop)
+The other case is a proof of : for all m Nat, evp m means evp Succ(Succ(m))
+Also 1 case is well defined since Lean cannot find such m s.t. Succ(Succ(m)) = 1 so false
+
+-/
+
 inductive evp : Nat -> Prop where
-| ev_zero : evp 0 -- Anything with type prop
+| ev_zero : evp 0 -- Anything with type prop is by default True ?
 | ev_succ (m : Nat) (H : evp m) : evp (Nat.succ (Nat.succ m))
 
 -- Inductive predicates need a Proof as an input as well since ev_succ 3 is same as ev_succ 1
@@ -77,7 +86,31 @@ theorem eq_ev_evp : ∀ (n : Nat), evp n ↔ (ev n = true) := by
                     simp [IH]
   }
   {
-    sorry
+    intro n_ev
+    -- induction
+    induction n with
+    | zero => exact evp.ev_zero
+    | succ k Ih =>
+      have hpair : ∀ m : Nat,
+          (ev m = true → evp m) ∧
+          (ev (Nat.succ m) = true → evp (Nat.succ m)) := by
+        intro m
+        induction m with
+        | zero =>
+          constructor
+          · intro _
+            exact evp.ev_zero
+          · intro h
+            simp [ev] at h
+        | succ m Ihm =>
+          constructor
+          · intro h
+            exact Ihm.right h
+          · intro h
+            simp [ev] at h
+            apply evp.ev_succ
+            exact Ihm.left h
+      exact (hpair k).right n_ev
   }
 
 
