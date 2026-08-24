@@ -167,4 +167,3 @@ theorem rev_idemp : ∀ l : List Nat, List.reverse (List.reverse l) = l
 
 -- Knowing which stragey (simp vs grind) is enough for our case analysisf
 
-theorem q1 : 

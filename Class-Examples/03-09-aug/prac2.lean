@@ -1,36 +1,68 @@
 -- One can do long, multiline comments in Lean by enclosing them within a forward slash followed by a hyphen and a hyphen followed by a forward slash, as shown below.
 
 /-
-Much like we used the double colon operator for prepending an element to a list, we can use two pluses (++) as an infix operator for list appending. List.append l1 l2 can be written more concisely as l1 ++ l2. You can see how this works via the following test. You have to be careful that for (::) the first operand must be an *element* and the second a *List*, but for (++) both operands must be Lists, even if one happens to be a singleton list. (Types are not to be taken lightly in programming... we are no longer operating in a loosey-goosey language like Python, where anything goes, pretty much, and all sorts of weird side effects might happen.)
+Much like we used the double colon operator for prepending an element to a list, we can use two pluses (++) as an infix operator for list appending.
+List.append l1 l2 can be written more concisely as l1 ++ l2. You can see how this works via the following test. You have to be careful that
+for (::) the first operand must be an *element* and the second a *List*, but for (++) both operands must be Lists, even if one happens to be
+a singleton list. (Types are not to be taken lightly in programming... we are no longer operating in a loosey-goosey language like Python,
+where anything goes, pretty much, and all sorts of weird side effects might happen.)
 -/
 
 #eval ([1, 2, 3] ++ [4])
 
 /-
-Recall our earlier theorem where we showed that the lengths of the lists [1, 2, 3] and [[], ['a'], ['B']] were equal. It is obvious that the list which is the result of the expression 0::[1, 2, 3] has length longer than [1, 2, 3] (because it has one extra element). One way to state it as the relatively "normal" theorem, as follows.
+Recall our earlier theorem where we showed that the lengths of the lists [1, 2, 3] and [[], ['a'], ['B']] were equal.
+It is obvious that the list which is the result of the expression 0::[1, 2, 3] has length longer than [1, 2, 3]
+(because it has one extra element). One way to state it as the relatively "normal" theorem, as follows.
 -/
 
 theorem len_prep_longer_1234 :
     List.length [1, 2, 3] < List.length (0::[1, 2, 3]) :=
     by
 /-
-    However, here rfl will no longer work! rfl is only for reflexivity, i.e. stating that a particular term is equal to itself, but we are dealing with *in*equalities here. So while the statement is not a difficult one (of course 3 is less than 4), we still need something that will be allow Lean to realize that the natural numbers (which form the range of the List.length function) obey a total order by way of the < relation. One such tactic is called 'simp', short for 'simplify'. simp will do some rewriting and replace terms by "simpler" variants, in order to simplify the current state to reach the goal.
+    However, here rfl will no longer work! rfl is only for reflexivity, i.e. stating that a particular term is equal to itself,
+    but we are dealing with *in*equalities here. So while the statement is not a difficult one (of course 3 is less than 4),
+    we still need something that will be allow Lean to realize that the natural numbers (which form the range of the
+    List.length function) obey a total order by way of the < relation. One such tactic is called 'simp', short for 'simplify'.
+    simp will do some rewriting and replace terms by "simpler" variants, in order to simplify the current state to reach the goal.
 -/
     simp
+/-
+In fact, simp suffices for our use here, and lets us reach the goal without requiring any further tactics.
+One can also use simp in place of rewrite, by giving it a specific fact it can use to simplify further.
 
--- In fact, simp suffices for our use here, and lets us reach the goal without requiring any further tactics. One can also use simp in place of rewrite, by giving it a specific fact it can use to simplify further.
-
--- Now, there was nothing special about these choices of numbers for us. It is indeed true that if one prepends an existing list with any element, the length increases by one. This is true for any list and any element *of any given type*. In order to make such a statement ("for any type, for any list of said type and any element of said type..."), one needs to use quantification, namely the \forall operator (which renders as ∀ if you have the right extension). One can state a theorem called len_prep_longer to this effect as follows.
+Now, there was nothing special about these choices of numbers for us. It is indeed true that if one prepends an
+existing list with any element, the length increases by one. This is true for any list and any element *of any given type*.
+In order to make such a statement ("for any type, for any list of said type and any element of said type..."), one
+needs to use quantification, namely the \forall operator (which renders as ∀ if you have the right extension). One
+can state a theorem called len_prep_longer to this effect as follows.
+-/
 
 theorem len_prep_plus_one :
     ∀ α : Type, ∀ l : List α, ∀ n : α, List.length l = List.length (n :: l) - 1 :=
     by simp
 /-
-    Interestingly, simp suffices to prove even this more complex-looking statement, but rfl would not, even though the equality is indeed true. rfl cannot "get past" the quantifiers, but simp does (a fair bit) more than what rfl does. simp would continue to work even if we just said List.length l < List.length (n :: l) inside the quantification, which rfl cannot handle, as we just saw. Even more importantly, simp can figure out that the right hand side of the equation will never evaluate to a non-natural number (-1, for example) thanks to the shape of the list passed as input to List.length on the RHS (the length of a list constructed using cons -- or ::, the syntactic sugar for cons -- can never be zero). So simp is powerful enough to sweep a lot under the rug, including how to handle quantification, should we ever find ourselves in a situation where simp would *not* suffice. In general, one cannot prove relatively complex universally quantified statements without doing something about the quantified variables.
+    Interestingly, simp suffices to prove even this more complex-looking statement,
+    but rfl would not, even though the equality is indeed true. rfl cannot "get past"
+    the quantifiers, but simp does (a fair bit) more than what rfl does. simp would
+    continue to work even if we just said List.length l < List.length (n :: l) inside
+    the quantification, which rfl cannot handle, as we just saw. Even more importantly,
+    simp can figure out that the right hand side of the equation will never evaluate to
+    a non-natural number (-1, for example) thanks to the shape of the list passed as
+    input to List.length on the RHS (the length of a list constructed using cons -- or ::,
+    the syntactic sugar for cons -- can never be zero). So simp is powerful enough to
+    sweep a lot under the rug, including how to handle quantification, should we ever find
+    ourselves in a situation where simp would *not* suffice. In general, one cannot prove
+    relatively complex universally quantified statements without doing something about
+    the quantified variables.
 
     How would you prove a ∀ statement if you had to do it by hand? How would you start?
 
-    One usually starts the proof of such a statement by saying "Consider an arbitrary < object of the appropriate type >" (a type, a list, a natural number, a graph, whatever) and then proceeds to manipulate this object to obtain the desired conclusion. Finally, one concludes by claiming that since the statement held true about an arbitrarily chosen object, the theorem must hold about all such objects. One does a very similar thing in Lean, but instead of saying a long phrase like the above, one just uses a tactic called "intro".
+    One usually starts the proof of such a statement by saying "Consider an arbitrary < object of the appropriate type >"
+    (a type, a list, a natural number, a graph, whatever) and then proceeds to manipulate this object to obtain the desired
+    conclusion. Finally, one concludes by claiming that since the statement held true about an arbitrarily chosen object,
+    the theorem must hold about all such objects. One does a very similar thing in Lean, but instead of saying a long
+    phrase like the above, one just uses a tactic called "intro".
 -/
 
 theorem len_prep_plus_one_try1 :
@@ -41,11 +73,25 @@ theorem len_prep_plus_one_try1 :
         intro number_n
         rfl
 
--- In the above proof, we considered an arbitrary type called type_alpha, an arbitrary list called list_l (and Lean knows, thanks to our type declarations in the theorem statement, that list_l must be a List of type type_alpha), and an arbitrary number called number_n. We could also have used the same names (α, l, n) but this is not strictly necessary. What yields the correspondence is the order in which the variables are introduced; each introduction corresponds to the universal quantification at the outermost level in the current expected goal. What would happen if we added another intro, say intro x, between intro number_n and rfl?
+/-
+-- In the above proof, we considered an arbitrary type called type_alpha, an arbitrary list called list_l
+  (and Lean knows, thanks to our type declarations in the theorem statement, that list_l must be a List of
+  type type_alpha), and an arbitrary number called number_n. We could also have used the same names (α, l, n)
+  but this is not strictly necessary. What yields the correspondence is the order in which the variables are
+  introduced; each introduction corresponds to the universal quantification at the outermost level in the current
+  expected goal. What would happen if we added another intro, say intro x, between intro number_n and rfl?
 
--- As you step through, you will see that each intro statement moves the arbitrary object considered into the *assumptions* available to Lean (the first statement adds an assumption saying that type_alpha is of type Type etc.), and strips away one level of quantification (since one can clearly use ). Once you are done with the three intro statements, you are left with just the statement inside the quantification, which can be handled by rfl directly, since List.length for n::l is defined to be 1 + List.length l (for any n and l of the appropriate types) and rfl does do some basic simplification, as we saw in the last set of programs.
+-- As you step through, you will see that each intro statement moves the arbitrary object considered into
+the *assumptions* available to Lean (the first statement adds an assumption saying that type_alpha is of type
+Type etc.), and strips away one level of quantification (since one can clearly use ). Once you are done with
+the three intro statements, you are left with just the statement inside the quantification, which can be handled by
+rfl directly, since List.length for n::l is defined to be 1 + List.length l (for any n and l of the appropriate types)
+and rfl does do some basic simplification, as we saw in the last set of programs.
 
--- One could complicate this definition slightly more, and write the same theorem in the following way, using implication (either \imp or a hyphen followed by the greater than sign) and conjunction (\wedge, or forward slash followed by backward slash).
+-- One could complicate this definition slightly more, and write the same theorem in the following way,
+using implication (either \imp or a hyphen followed by the greater than sign) and conjunction (\wedge, or forward slash followed by backward slash).
+-/
+
 
 theorem len_prep_plus_one_try2 :
   ∀ α : Type, ∀ l1 l2 : List α, ∀ n : α, ∀ len1 len2 : Nat,
@@ -61,17 +107,22 @@ theorem len_prep_plus_one_try2 :
     have h1 : l1.length = len1 :=
       by
         exact And.left h
-    -- Since we want each conjunct to have first-class standing as an assumption (this might not always be necessary; but in this proof it is handy to do so), we use the keyword "have" and give it a name 'h1', and state the statement we are interested in. The proof for h1 is merely the first part of the conjunction h, so we use the keyword 'exact' to indicate that the goal exactly matches what follows. What follows is 'And.left h', which gives us the left conjunction of h, and the proof is done. (If the goal matches some assumption exactly without doing any other manipulation -- like we are doing with And.left here -- we can even just use the tactic 'assumption'.)
+    -- Since we want each conjunct to have first-class standing as an assumption (this might not always be necessary;
+    -- but in this proof it is handy to do so), we use the keyword "have" and give it a name 'h1', and state the
+    -- statement we are interested in. The proof for h1 is merely the first part of the conjunction h, so we use
+    -- the keyword 'exact' to indicate that the goal exactly matches what follows. What follows is 'And.left h',
+    -- which gives us the left conjunction of h, and the proof is done. (If the goal matches some assumption exactly
+    -- without doing any other manipulation -- like we are doing with And.left here -- we can even just use the tactic 'assumption'.)
 
     have h2 : l2.length = len2 :=
       by
-        -- One can leave a proof in Lean unfinished by apologizing to the compiler with the keyword 'sorry'. This tells Lean to pretend as if the proof is finished and move on with merely a warning, instead of a full-blown error.
-        -- ERASE THE FOLLOWING SORRY AND FILL IN THE PROOF
-        sorry
+        -- One can leave a proof in Lean unfinished by apologizing to the compiler with the keyword 'sorry'.
+        -- This tells Lean to pretend as if the proof is finished and move on with merely a warning, instead of a full-blown error.
+
+        exact And.left (And.right h)
     have h3 : l2 = n :: l1 :=
       by
-        -- ERASE THE FOLLOWING SORRY AND FILL IN THE PROOF
-        sorry
+        exact And.right (And.right h)
 
 
     -- At this point, we need to show that len1 = len2 - 1. In order to do this, we first have to tell Lean that len1 and len2 have specific meaning (which we can get from h1 and h2). Since h1 and h2 are equalities, we would ideally like to use the rewrite tactic, to tell Lean that these names belong to the lengths of lists (and said lists are connected by h3). However, recall from earlier that the rewrite (or rw) tactic takes each occurrence of the *LHS* of the equality in the expected goal and rewrites it to the *RHS*. The goal does not contain any occurrences of l1.length or l2.length; so how do we proceed? We have to tell Lean to rewrite in the opposite direction, which we do by specifying a left arrow inside the argument to the rw tactic, upon which it rewrites according to the equality specified in the argument, but from right to left instead (i.e. it rewrites every occurrence of the RHS of the equality to the LHS).
@@ -106,7 +157,11 @@ theorem len_prep_longer :
       simp [h]
     }
 
--- Lists are one of the most useful structures in Lean. It is good to know what operations are defined on lists, which you can do by typing List. and finding the list of options the autocomplete dropdown gives you (if you have the right VSCode extension installed). One very helpful function is List.contains. One can also use \in (the set membership operator ∈) as shorthand for List.contains.
+-- Lists are one of the most useful structures in Lean. It is good to know what operations are defined on lists,
+-- which you can do by typing List. and finding the list of options the autocomplete dropdown gives you
+-- (if you have the right VSCode extension installed). One very helpful function is List.contains. One can
+-- also use \in (the set membership operator ∈) as shorthand for List.contains.
+  
 
 #check List.contains
 #eval List.contains [1, 2, 3] 1

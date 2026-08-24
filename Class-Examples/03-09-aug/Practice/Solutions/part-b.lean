@@ -101,3 +101,137 @@ Q : x is even
 Well both statements are true (each have witness of themsevles and not required to have a common witness)
 But the RHS requires a common witness which is not possible by definition of odd and even
 -/
+
+-- Now we move to Q12
+-- 1.  (¬∃ x, P x) ↔ (∀ x, ¬ P x)
+theorem q_12_01 : ∀(P : Nat → Prop), (¬∃x, P x) ↔ (∀ x, ¬ P x) := by
+  intro P
+  constructor
+  · intro hnexP
+    intro x
+    intro hPx
+    have hexP : ∃x, P x := Exists.intro x hPx
+    exact hnexP hexP
+    -- contradiction
+  · intro hAllnP
+    intro hPx
+    obtain ⟨x, hP⟩ := hPx
+    exact (hAllnP x) hP
+
+-- 2.  (∃ x, ¬ P x) → ¬(∀ x, P x)
+theorem q_12_02 : ∀(P : Nat → Prop), (∃x, ¬ P x) → ¬(∀ x, P x) := by
+  intro P
+  intro hexnp
+  intro hAllP
+  obtain ⟨x,hnp⟩ := hexnp
+  exact hnp (hAllP x)
+
+-- 3.  (¬∀ x, P x) → (∃ x, ¬ P x)
+/-
+  !!!! IMP: Classical reasoning is now part of our proof arsenal.
+
+  LEM (the Law of Excluded Middle) says that every proposition P satisfies
+  P \or \not P. In Lean, we obtain this using Classical.em P.
+
+  PBC (Proof By Contradiction) says that to prove P, we may assume \not P
+  and derive False. In Lean, we can use `Classical.byContradiction`.
+
+  Double-negation elimination, `\not\not P \to P`, is also classical. We can
+  prove it by using `Classical.em P`: the P case gives P directly, while the
+  `\not P` case contradicts the assumption `\not\not P`.
+
+  In this theorem, hnAllP : \not(\forall x, P x) does not directly contain
+  a witness. We use PBC to show that \exists x, \not P x must hold.
+-/
+
+-- Non Trivial, needs more practice ????
+
+theorem q_12_03 : ∀(P : Nat -> Prop), (¬∀ x, P x) → (∃x, ¬P x) := by
+  intro P
+  intro hnAllP
+  apply Classical.byContradiction
+  intro hnexnp
+  apply hnAllP
+  intro x
+  apply Classical.byContradiction
+  intro hnp
+  apply hnexnp
+  exact Exists.intro x hnp
+
+
+-- 4.  (∃ x, P x) → ¬(∀ x, ¬ P x)
+
+theorem q_12_04 : ∀(P : Nat → Prop), (∃ x, P x) → ¬(∀ x, ¬ P x) := by
+  intro P
+  intro hexp
+  apply Classical.byContradiction
+  -- simp; exact hexp
+  intro hAllnp'
+  have hAllnp : ∀ (x : Nat), ¬ P x := Classical.not_not.mp hAllnp'
+  obtain ⟨x,hp⟩ := hexp
+  exact (hAllnp x) hp
+
+-- Q13
+
+theorem fact5 : ∀ (P : Nat → Prop) (q : Prop), (¬¬q → q) →
+                  (¬∀ x, ¬ P x) → (∀ x, P x → q) → q := by
+  intro P q dneq
+  intro hnAllnP hAllP
+  apply dneq
+  intro hnq
+  apply hnAllnP
+  intro x hp
+  exact hnq (hAllP x hp)
+
+--  Q14. Nested quantifiers and order
+
+example : ∀ (R : Nat → Nat → Prop), (∃ x, ∀ y, R x y) → (∀ y, ∃ x, R x y) := by
+  intro R
+  intro hex
+  obtain ⟨x, hAllR⟩ := hex
+  intro y
+  exact Exists.intro x (hAllR y)
+
+/-
+Part 2 Has Obvious Counter : For all y, there is a x s.t. y + 1 = x, but for a given x, not all y follow the same thing
+-/
+
+example : ∀ (R : Nat → Nat → Prop), (∀ x, ∀ y, R x y) ↔ (∀ y, ∀ x, R x y) := by
+  intro R
+  constructor
+  · intro hAllR
+    intro y x
+    exact (hAllR x y)
+  · intro hAllR
+    intro x y
+    exact (hAllR y x)
+
+example : ∀ (x : Nat), ∃ (y : Nat), y > x := by
+  intro x
+  refine ⟨Nat.succ x, ?_⟩
+  rw [Nat.succ_eq_add_one]
+  exact Nat.lt_add_one x
+
+example : ∀ (x : Nat), (x > 0) → (∃ (y : Nat), y = x - 1) := by
+  intro x
+  cases x with
+  | zero => intro rule
+            contradiction
+  | succ k =>
+    intro _
+    refine ⟨k, ?_⟩
+    rfl
+
+
+theorem pred_mono : ∀ (P Q : Nat → Prop), (∀ x, P x → Q x) → (∃ x, P x) → (∃ x, Q x) := by
+  intro P Q
+  intro hAllPQ
+  intro hexP
+  obtain ⟨x, hP⟩ := hexP
+  exact Exists.intro x (hAllPQ x hP)
+
+theorem pred_and  : ∀ (P Q : Nat → Prop), (∀ x, P x) → (∀ x, Q x) → (∀ x, P x ∧ Q x) := by
+  intro P q
+  intro hAllP hAllQ
+  intro x
+  exact And.intro (hAllP x) (hAllQ x)
