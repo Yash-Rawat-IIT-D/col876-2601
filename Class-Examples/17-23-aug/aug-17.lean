@@ -7,7 +7,7 @@ theorem add_zero_r : ∀(n : Nat), n + 0 = n := by
   -- rw [Nat.add_zero]
   simp -- simp works (basic arithmetic), rfl doesn't work
 
-
+#check Nat.add_zero
 -- Note that we either rewrite using commutativity of addition but if we do from first principles
 -- Knowing the internal definition of
 
@@ -78,3 +78,5 @@ example (b c : Bool) : (b && c) = (c && b) := by
 
 #print Nat.add_eq_max_iff
 #print Nat.max
+
+#print False.elim

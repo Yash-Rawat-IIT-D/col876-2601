@@ -1,11 +1,11 @@
-import Mathlib
+-- import Mathlib
 
-lemma nnimp1 : ∀ (p q: Prop), ¬¬(p → q) → ¬¬p → ¬¬q := by
+theorem nnimp1 : ∀ (p q: Prop), ¬¬(p → q) → ¬¬p → ¬¬q := by
   intro p q F G H
   apply F; intro J; apply G; intro K
   apply H (J K)
 
-lemma nnimp2 : ∀ (p q: Prop), (¬¬p → ¬¬q) → ¬¬(p → q) := by
+theorem nnimp2 : ∀ (p q: Prop), (¬¬p → ¬¬q) → ¬¬(p → q) := by
   intro p q F G
   have H: ¬¬q
   {
@@ -15,7 +15,7 @@ lemma nnimp2 : ∀ (p q: Prop), (¬¬p → ¬¬q) → ¬¬(p → q) := by
     apply H; intro J; apply G; intro K; assumption
   }
 
-lemma exercise : ∀ α β μ: Prop,
+theorem exercise : ∀ α β μ: Prop,
   (¬(α → β) → ¬¬(α → μ)) → α → ¬β → ¬¬μ := by
   intro α β μ F G H J
   apply F
@@ -26,13 +26,13 @@ lemma exercise : ∀ α β μ: Prop,
     intro K; apply J; apply K; assumption
   }
 
-lemma fact1 : ∀ α β: Prop, α → ¬α → ¬¬β := by
+theorem fact1 : ∀ α β: Prop, α → ¬α → ¬¬β := by
   intro α β F G H; exact (G F)
 
-lemma fact2 : ∀ α β: Prop, β → ¬α → ¬¬β := by
+theorem fact2 : ∀ α β: Prop, β → ¬α → ¬¬β := by
   intro α β F G H; exact (H F)
 
-lemma fact3 : ∀ α β μ: Prop, (¬¬μ → μ) →
+theorem fact3 : ∀ α β μ: Prop, (¬¬μ → μ) →
   (¬α → ¬¬β) → (α → μ) → (β → μ) → μ := by
   intro α β μ DNE F G H
   apply DNE

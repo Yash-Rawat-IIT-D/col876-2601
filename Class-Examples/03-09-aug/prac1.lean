@@ -1,4 +1,6 @@
--- Lean is a powerful proof assistant as well as programming language. In flavour, it is likely different from most programming languages you have used so far, which have probably all been imperative; you tell the system what to do and how to do it. Lean, by contrast, is more in the style of a functional programming language, which means that you define functions and functionality (what something *is*), leaving the system to figure out how to achieve whatever is asked of it. This approach, while it allows more freedom by way of handling *potentially* infinite objects, of which we might only use an unbounded fraction, means that definitions for types and data now look significantly different from what they might have looked like in C or Java or Python.
+-- Lean is a powerful proof assistant as well as programming language. In flavour, it is likely different from most programming languages you have used so far,
+-- which have probably all been imperative; you tell the system what to do and how to do it. Lean, by contrast, is more in the style of a functional programming language,
+-- which means that you define functions and functionality (what something *is*), leaving the system to figure out how to achieve whatever is asked of it. This approach, while it allows more freedom by way of handling *potentially* infinite objects, of which we might only use an unbounded fraction, means that definitions for types and data now look significantly different from what they might have looked like in C or Java or Python.
 
 -- The basic building block for our purposes is going to be an inductively-defined abstract datatype. One tells Lean that one is defining a datatype by appending ": Type" to the definition. In order to tell Lean that a type is inductive, the keyword "inductive" is prepended to the name of the type. Below, we define an inductive datatype called "day", which can take one of seven possible forms, as according to the standard notion of a week.
 
@@ -68,7 +70,7 @@ theorem nd_monday_incorrect :
 
 -- YOUR FUNCTION DEFINITION GOES HERE --
 
-def nextWorkingDay : day →  day
+def nextWorkingDay : day → day
   | day.monday => .tuesday
   | .tuesday => .wednesday
   | .wednesday => .thursday
@@ -109,6 +111,7 @@ theorem nwd_fri_sun_01 : (nextWorkingDay .friday = nextWorkingDay .sunday)
 inductive myList (α : Type) where
   | nil : myList α
   | cons : α -> myList α -> myList α
+
 
 -- Creating a myList object with two elements of type \alpha would need us to write myList.cons (myList.cons (...)), which is painful and error-prone. So, Lean's in-built List type, instead of insisting that one do this every time to define lists, allows some shorthand by way of syntactic sugar. [] is the nil List, of any type. And instead of writing some sequence of cons every time, one can write a List object using square brackets and commas, and specifying the elements therein, as [el1, el2, ..., eln]. Sometimes (especially while specifying the cons case in an inductive proof) one wants to provide the structure of the list, as an element prepended to an existing list. Prepending is indicated by the infix double colon (::) operator.
 
@@ -155,7 +158,9 @@ def myRev : List Nat → List Nat
   | [] => []
   | (hd :: tl) => List.append  (myRev tl) [hd]
 
-
+def myRev_typed (α : Type) : List α → List α
+  | List.nil => List.nil
+  | List.cons hd tl => List.append (myRev_typed α tl) [hd]
 
 theorem rev_idemp : ∀ l : List Nat, List.reverse (List.reverse l) = l
   := by
@@ -166,4 +171,3 @@ theorem rev_idemp : ∀ l : List Nat, List.reverse (List.reverse l) = l
 -- grind -> Linear Integer arithmetic (way more powerful than simp)
 
 -- Knowing which stragey (simp vs grind) is enough for our case analysisf
-

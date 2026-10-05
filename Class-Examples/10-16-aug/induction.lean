@@ -76,7 +76,7 @@ theorem facequiv : ∀ (n : Nat), myFac n = myFac2 n := by
           rw [myFac]
           rw [myFac2]
           simp
-          assumption
+          rw [Ih]
 
 -- Define a double function, which doubles any given natural number
 

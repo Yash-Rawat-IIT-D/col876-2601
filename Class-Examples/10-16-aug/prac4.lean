@@ -1,13 +1,19 @@
 /-
-Recall that we defined inductive types (the type "day" that we started our Lean sessions with was defined inductively, although trivially so; the myList datatype used induction much more substantially).
+Recall that we defined inductive types (the type "day" that we started our Lean sessions with was defined inductively,
+although trivially so;
+the myList datatype used induction much more substantially).
 
-We can also define inductive predicates over inductive datatypes. A simple inductive predicate is BelongsTo, which denotes membership, and we can define as follows.
+We can also define inductive predicates over inductive datatypes. A simple inductive predicate is BelongsTo,
+which denotes membership, and we can define as follows.
 -/
 
 inductive BelongsTo {α : Type} : α → List α → Prop
 where
   | isHead (h : α) (tl : List α) : BelongsTo h (h :: tl)
   | inTail (h y : α) (tl : List α) : BelongsTo h tl → BelongsTo h (y :: tl)
+
+example : BelongsTo 2 [1, 2, 3] :=
+  BelongsTo.inTail 2 1 [2, 3] (BelongsTo.isHead 2 [3])
 
 /-
   This predicate is defined for any type α, over an object of type α and an object of type List α. There are two possibilities, each named by a constructor (isHead and inTail). The isHead constructor deals with the case when the object h appears at the head of the list tl, and therefore we can state that h belongs to the list h::tl. The inTail constructor deals with the case when the object h appears somewhere "inside" the list tl, but not at its head. So the constructor takes as arguments not just h, but also y (another object of type α), and the list tl, and states that if h belongs to the list tl, then h also belongs to the list y::tl.

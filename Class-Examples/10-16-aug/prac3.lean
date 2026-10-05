@@ -7,7 +7,11 @@
 -- YOUR ANSWER GOES HERE
 
 /-
-    If you did this correctly, you would see that you needed to account for one case where myRev yielded an empty list, and one where it returned a non-empty list. Often, you might need to consider multiple possible cases for the structure of an inductively-defined object, and do different things based on the structure. Lean has a keyword called "match" which lets you do that. The syntax is the same as that for the "induction" keyword, except there is no inductive hypothesis (and you will need to write List.nil and List.cons instead of it automatically inferring the List type); "match" merely makes an attempt at a proof by case analysis, not a proof by induction.
+    If you did this correctly, you would see that you needed to account for one case where myRev yielded an empty list, and one where it
+    returned a non-empty list. Often, you might need to consider multiple possible cases for the structure of an inductively-defined object,
+    and do different things based on the structure. Lean has a keyword called "match" which lets you do that. The syntax is the same as that
+    for the "induction" keyword, except there is no inductive hypothesis (and you will need to write List.nil and List.cons instead of
+    it automatically inferring the List type); "match" merely makes an attempt at a proof by case analysis, not a proof by induction.
 
     Recall that in a non-empty list of the sort (n :: tl), the element n is the "head" and the rest of the list (tl) is the "tail". What is the head of an empty list? Examine the type of the List.head function.
 -/
@@ -17,9 +21,15 @@
 /-
     Note that this is what is called a "dependent type". The type of the result depends on the value of the argument (in this case the List object whose head is being asked for). Dependent types are very handy; one can use them for defining partial functions, with the partial-ness clearly specified. One could define a division function on integers by specifying that the denominator must not be 0, for example.
 
-    What if we wanted to specify a total function for division on integers? We would be able to specify the function as is for all values except when the denominator was zero -- in that case, we would need to specify a "default" value (often, general programming languages would call this "NaN" -- not a number).
+    What if we wanted to specify a total function for division on integers?
+    We would be able to specify the function as is for all values except when
+    the denominator was zero -- in that case, we would need to specify a "default"
+    value (often, general programming languages would call this "NaN" -- not a number).
 
-    Suppose we wanted to define a total version of the head function similarly. Let us first try to do this for the List Nat type. We would need to define a default value; let us say that we return 0 if one invokes this function on an empty list, and the actual head otherwise. We can define this as follows.
+    Suppose we wanted to define a total version of the head function similarly.
+    Let us first try to do this for the List Nat type. We would need to define a
+    default value; let us say that we return 0 if one invokes this function on an
+    empty list, and the actual head otherwise. We can define this as follows.
 -/
 
 def total_head_nat : List Nat → Nat
@@ -28,19 +38,29 @@ def total_head_nat : List Nat → Nat
 
 /-
   Ideally we want such a function for *any* list of *any* type.
-  We try to define it as follows. The function is defined with an *implicit* type α (with braces around it rather than parentheses, like we used in myLength, where we intended the type to be *explicit*), where it takes an object of List α as the input, and an *explicit* default argument of type α, which is to be returned in the case of the input being an empty list.
+  We try to define it as follows. The function is defined with an *implicit* type α (with braces around it rather than parentheses,
+  like we used in myLength, where we intended the type to be *explicit*), where it takes an object of List α as the input, and an
+  *explicit* default argument of type α, which is to be returned in the case of the input being an empty list.
 -/
 
-def total_head {α : Type} (default : α) : List α → α
-  | [] => default
+def total_head {α : Type} (NAN : α) : List α → α
+  | [] => NAN -- some default values, this case should not arise and can be checked
   | (h :: _) => h
 
 /-
-  Think: Is there a situation where such a function definition would fail? Some particular type? If there is some such, what more would we need to enforce that it did not fail in that case?
+  Think: Is there a situation where such a function definition would fail?
+  Some particular type? If there is some such, what more would we need to enforce
+  that it did not fail in that case?
 
-  If we want to enforce conditions on types, we put them not inside braces or parentheses like we do for implicit/explicit types, but inside square brackets. Check the type of List.contains (which we already saw) to recall that this requires the type to admit equality checking (you can compare any two elements of this type to see if they are equal, and return a Boolean value of true or false), given by [BEq α].
+  If we want to enforce conditions on types, we put them not inside braces or
+  parentheses like we do for implicit/explicit types, but inside square brackets.
+  Check the type of List.contains (which we already saw) to recall that this
+  requires the type to admit equality checking (you can compare any two elements
+  of this type to see if they are equal, and return a Boolean value of true or
+  false), given by [BEq α].
 
-  Write a function match_head which takes as input a list of some type, and a target value of the same type, and returns true (of type Bool) if the head of the list matches the target value, and false (of type Bool) otherwise (including the cse where the list does not have a head element).
+  Write a function match_head which takes as input a list of some type, and a
+  target value of the same type, and returns true (of type Bool) if the head of the list matches the target value, and false (of type Bool) otherwise (including the cse where the list does not have a head element).
 -/
 
 def match_head {α : Type} [BEq α] : List α → α → Bool
@@ -65,9 +85,16 @@ def match_head_pc : List Nat → Nat → Bool :=
 #check List.zip
 
 /-
-  But what if I accidentally specify a *different* default value here while I'm calling the total_head function? Suppose I intended 0 to be the "default" value to return if the list is empty, but while calling the total_head function in my match_head function, I make a typo and write 9 instead. Now, while I might have enforced in my application that lists do not start with 0 and so such a confusion does not arise, I would get a true value even if the list begins with 9 instead.
+  But what if I accidentally specify a *different* default value here while I'm calling
+  the total_head function? Suppose I intended 0 to be the "default" value to return if
+  the list is empty, but while calling the total_head function in my match_head function,
+  I make a typo and write 9 instead. Now, while I might have enforced in my application
+  that lists do not start with 0 and so such a confusion does not arise, I would get a
+  true value even if the list begins with 9 instead.
 
-  To avoid such accidents and unforeseen confusion, we would like to "bake in" the default value into the total_head function, instead of having to specify it every time one calls the function. However, if you had thought about the exercise given above for when total_head might fail, you would realize that this requires some refinement of the type considered.
+  To avoid such accidents and unforeseen confusion, we would like to "bake in" the default value into the total_head function,
+  instead of having to specify it every time one calls the function. However, if you had thought about the exercise given
+  above for when total_head might fail, you would realize that this requires some refinement of the type considered.
 -/
 
 /-

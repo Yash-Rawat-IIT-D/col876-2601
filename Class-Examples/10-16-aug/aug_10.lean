@@ -90,3 +90,9 @@ theorem fac_equiv : ∀ (n : Nat), (myfac n) = (myfac2 n) := by
                 rw [myfac2]
                 simp
                 rw [Ih]
+                
+theorem prop_doub_imp : ∀ (p : Prop), p ↔ p := by
+  intro p
+  constructor
+  · intro h; exact h
+  · intro h; exact h

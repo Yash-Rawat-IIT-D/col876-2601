@@ -161,7 +161,7 @@ theorem len_prep_longer :
 -- which you can do by typing List. and finding the list of options the autocomplete dropdown gives you
 -- (if you have the right VSCode extension installed). One very helpful function is List.contains. One can
 -- also use \in (the set membership operator ∈) as shorthand for List.contains.
-  
+
 
 #check List.contains
 #eval List.contains [1, 2, 3] 1
@@ -169,11 +169,17 @@ theorem len_prep_longer :
 #eval List.contains [[], ['s']] []
 #eval 1 ∈ [1, 2, 3]
 
--- Use List.contains to state a theorem called len_sup_long, which states that given a list (say l1), any other list (say l2) which contains all elements of l1 must have length at least as much as that of l1. Be careful about quantification, and use parentheses to be precise, if in doubt. The lists l1 and l2 must be of type Nat. Leave the proof as a 'sorry' for now. Convince yourself of the truth or falsehood of the statement by hand, be as precise as possible, and leave it as a comment in your final submission.
+-- Use List.contains to state a theorem called len_sup_long, which states that given a list (say l1), any other list (say l2) which contains all elements of l1 must have length at
+-- least as much as that of l1. Be careful about quantification, and use parentheses to be precise, if in doubt. The lists l1 and l2 must be of type Nat.
+-- Leave the proof as a 'sorry' for now. Convince yourself of the truth or falsehood of the statement by hand, be as precise as possible, and leave it as a comment in your final submission.
 
 -- YOUR THEOREM STATEMENT GOES HERE
 
 -- YOUR EXPLANATION GOES HERE
+
+/-
+Not really as l1 can be [1,1,2,2,3,3,4,4] and l2 can be [1,2,3,4] (we need to take care of what contains is and how duplicates our handle in our theorem setup)
+-/
 
 #check List.length
 #check List.append

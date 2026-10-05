@@ -55,11 +55,12 @@ Prove the following (implicitly universally quantified) statement. Provide a pro
 
 -/
 
+-- Tail Recursive optimisation -> Pass a accumulator to store state
 
 def revhelp {α : Type} (acc l : List α) : List α :=
   match l with
-| [] => acc
-| x::xs => revhelp (x::acc) xs
+  | [] => acc
+  | x::xs => revhelp (x::acc) xs
 
 def myrev {α : Type} (l : List α) : List α :=
   revhelp [] l
@@ -71,6 +72,13 @@ theorem correcthelp {α : Type}: ∀ (a l : List α),
   · rfl
   · simp [revhelp]
     simp [correcthelp]
+
+theorem correcthelp2 {α : Type} : ∀ (a l : List α),
+  revhelp a l = (List.reverse l) ++ a := by
+  intro a l
+  induction l with
+  | nil => rfl
+  | cons hd tl Ih => simp [revhelp, correcthelp]
 
 theorem myrevcorrect {α : Type}: ∀ (l : List α), myrev l = List.reverse l := by
   intro l
@@ -94,17 +102,17 @@ theorem apprevpal : ∀ (l : List Nat), pal (l ++ l.reverse) := by
   | cons hd tl Ih =>
                     simp [<- List.append_assoc]
                     constructor
-                    assumption
+                    exact Ih
 
 theorem pal_rev : ∀ (l : List Nat), pal l → pal (l.reverse) := by
   intro l
   intro hp
-  /- induction hp with
+  induction hp with
   | nil => constructor
   | sing n => constructor
   | bigl n tl Htl Ih => simp
                         constructor
                         assumption
-  -/
-  induction hp
-  all_goals (try simp; try constructor; try assumption)
+
+  -- induction hp
+  -- all_goals (try simp; try constructor; try assumption)

@@ -1,35 +1,50 @@
--- So far, we saw ways in which we can manually apply the correct tactic, and get Lean to proceed to the simplified goal state, and keep doing this till there are no proof obligations left. However, this seems no better than writing proofs by hand (in some cases, like with some inductive proofs, writing proofs in Lean is actually harder, because some implicit assumptions one can make in a handwritten proof cannot be made here). At the end of it all, Lean is a proof assistant, and there should be some ways in which using Lean can make proof search easier than doing it painfully by hand. Can we automate any of the theorem proving that we have done so far?
+-- So far, we saw ways in which we can manually apply the correct tactic, and get Lean to proceed to the simplified goal state,
+-- and keep doing this till there are no proof obligations left. However, this seems no better than writing proofs by hand
+-- (in some cases, like with some inductive proofs, writing proofs in Lean is actually harder, because some implicit assumptions
+-- one can make in a handwritten proof cannot be made here). At the end of it all, Lean is a proof assistant, and there should
+-- be some ways in which using Lean can make proof search easier than doing it painfully by hand. Can we automate any of the
+-- theorem proving that we have done so far?
 
 -- Suppose I want to prove the following (very simple) theorem.
 
 theorem le_less_or_eq : ∀ a b : Nat, a ≤ b → a < b ∨ a = b :=
   by
     intro a b h
-  /- At this point, simp does not know what to do, even if we say simp [h] (it does not break down the ≤ further). simp certainly does not work on the goal because of the presence of the or operator. However, neither Or introduction is feasible, because we do not know what the exact relationship between a and b actually is. One might, at this point, try to figure out an inductive spec for ≤ and then induct on h, but this would be tiresome and error-prone. And, ultimately, this relationship between ≤ and < seems quite trivial, and an obvious property of the ordering on the naturals; so surely Lean must have a tactic to handle this? Unfortunately, none of the obvious tactics we have seen so far helps, because this is an inequality (rfl is out) and somehow simp is also powerless in the face of needing to break down ≤.
+/- At this point, simp does not know what to do, even if we say simp [h] (it does not break down the ≤ further). simp certainly does not work on the goal because of the presence of the or operator. However, neither Or introduction is feasible, because we do not know what the exact relationship between a and b actually is. One might, at this point, try to figure out an inductive spec for ≤ and then induct on h, but this would be tiresome and error-prone. And, ultimately, this relationship between ≤ and < seems quite trivial, and an obvious property of the ordering on the naturals; so surely Lean must have a tactic to handle this? Unfortunately, none of the obvious tactics we have seen so far helps, because this is an inequality (rfl is out) and somehow simp is also powerless in the face of needing to break down ≤.
 
-  Enter the tactic "grind". grind refers to a compendium of facts about equality, inequality and logic, and every time it discovers anything new, it adds it to that compendium. grind can therefore handle notions about inequality and ordering better than either rfl or simp can, and is enough to prove this extremely simple fact! In fact grind can handle a lot of linear arithmetic, not just facts about ≤. This also means that grind would succeed even if we used this tactic without even introducing a and b, which makes it very useful indeed. (You can try this yourself by commenting out the line with the intro above, and see if Lean still presents any pending goals.)
-  -/
+Enter the tactic "grind". grind refers to a compendium of facts about equality, inequality and logic, and every time it discovers anything new, it adds it to that compendium. grind can therefore handle notions about inequality and ordering better than either rfl or simp can, and is enough to prove this extremely simple fact! In fact grind can handle a lot of linear arithmetic, not just facts about ≤. This also means that grind would succeed even if we used this tactic without even introducing a and b, which makes it very useful indeed. (You can try this yourself by commenting out the line with the intro above, and see if Lean still presents any pending goals.)
+-/
     grind
 
-  /-
-  State and prove a theorem called gt_4 which says that for any natural number, if it is greater than 4, then it must be greater than 0, greater than 1, greater than 2, and greater than 3.
-  -/
+/-
+State and prove a theorem called gt_4 which says that for any natural number, if it is greater than 4, then it must be greater than 0, greater than 1, greater than 2, and greater than 3.
+-/
 
-  -- YOUR ANSWER HERE
+theorem gt_4 : ∀ n : Nat, n > 4 → (n > 3) ∧ (n > 2) ∧ (n > 1) ∧ (n > 0) := by
+  intro n
+  grind
 
-  /-
-  State and prove a theorem called gt_n which says that for any natural number m, if it is greater than n, then it must be greater than all natural numbers from 0 through n.
-  -/
+/-
+State and prove a theorem called gt_n which says that for any natural number m, if it is greater than n, then it must be greater than all natural numbers from 0 through n.
+-/
 
-  -- YOUR ANSWER HERE
+theorem gt_n : ∀ (n m: Nat), (m > n) → (∀ (k : Nat), (k <= n) → (m > k)) := by
+  intro n m hmgtn
+  -- grind -- Is able to do this, there's now way, THERE'S NOW WAY !!!
+  induction n with
+  | zero => simp; assumption
+  | succ t Ih => grind
 
-  /-
-    A word of caution: While grind is powerful, it's not omnipotent; there are still fairly simple statements it will not be able to prove upfront/without help, in which case it is sensible to fall back on more "traditional" methods which break the proof down into an expected set of subgoals. Try -- for your own edification; you need not include this in the final submission -- to prove the statement that any natural number is either zero or the successor to some natural number.
-  -/
+/-
+  A word of caution: While grind is powerful, it's not omnipotent; there are still fairly simple statements it
+  will not be able to prove upfront/without help, in which case it is sensible to fall back on more "traditional"
+  methods which break the proof down into an expected set of subgoals. Try -- for your own edification; you need
+  not include this in the final submission -- to prove the statement that any natural number is either zero or the successor to some natural number.
+-/
 
-  /-
-    Recall our definitions of the inductive type day and the function nextDay. One can state and prove a theorem as follows.
-  -/
+/-
+  Recall our definitions of the inductive type day and the function nextDay. One can state and prove a theorem as follows.
+-/
 
 inductive day : Type where
   | monday
@@ -78,7 +93,8 @@ by
   repeat rfl
 
   /-
-    However, note that since the ∧ operator is right-associative, repeating does not get us very far, since the second goal is no longer of the form a ∧ b for any a and b, and repeat stops right there. What we want is a kind of a while loop of a repeat, which runs on *both subgoals* till it cannot anymore -- this means that we want it to recursively go down the generated subgoals, and apply the given tactic till it cannot anymore. The recursive version of repeat is called "repeat'" (repeat prime), and it allows us to significantly shorten the proof.
+    However, note that since the ∧ operator is right-associative, repeating does not get us very far,
+    since the second goal is no longer of the form a ∧ b for any a and b, and repeat stops right there. What we want is a kind of a while loop of a repeat, which runs on *both subgoals* till it cannot anymore -- this means that we want it to recursively go down the generated subgoals, and apply the given tactic till it cannot anymore. The recursive version of repeat is called "repeat'" (repeat prime), and it allows us to significantly shorten the proof.
   -/
 
   theorem nextDays_third_try :
@@ -87,7 +103,8 @@ by
     repeat' apply And.intro
     repeat' rfl
 
-  -- Restate the statement of your theorem gt_4, and name this theorem gt_4_repeat. Use the above kind of repetition to prove it instead of whatever you used earlier. (This might end up being a longer proof, but the idea is to get you used to using repetition.)
+  -- Restate the statement of your theorem gt_4, and name this theorem gt_4_repeat.
+  -- Use the above kind of repetition to prove it instead of whatever you used earlier. (This might end up being a longer proof, but the idea is to get you used to using repetition.)
 
   -- YOUR ANSWER HERE
 
@@ -125,5 +142,11 @@ def nextWorkingDay : day → day
 -- State and prove a theorem which says that the nextWorkingDay after Friday, Saturday, as well as Sunday is Monday. Try to provide as short a proof as possible, using the techniques from this practical.
 
 -- YOUR ANSWER GOES HERE
+
+theorem hate_mondays : nextWorkingDay (day.friday) = day.monday ∧ nextWorkingDay (day.saturday) = day.monday ∧ nextWorkingDay (day.sunday) = day.monday :=
+  by
+    repeat' apply And.intro
+    repeat' simp [nextWorkingDay]
+
 
 -- For some other useful combinators, read Section 8.1 in the Hitchhiker's Guide to Logical Verification.

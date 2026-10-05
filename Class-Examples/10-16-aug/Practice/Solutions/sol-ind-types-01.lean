@@ -33,7 +33,7 @@ theorem weekend_next : ∀ d : Weekday, isWeekend d = true → isWeekend (next (
 
 -- ### Q5. `MyList` and its basic operations [★]
 
-inductive MyList (α : Type) where
+inductive MyList (α : Type) : Type where
   | nil  : MyList α
   | cons : α → MyList α → MyList α
 
