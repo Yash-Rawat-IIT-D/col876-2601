@@ -1,4 +1,4 @@
-# Questions 41–50: split, rcases, rw, simp, calc, and automation
+# Questions 01–10: split, rcases, rw, simp, calc, and automation
 
 These are short drills. The statements are deliberately simpler than the preceding tree proofs; the challenge is to use the specified tactic in the right place. Each question forces a particular combination rather than introducing another large structure.
 
@@ -23,7 +23,7 @@ inductive Parcel where
 
 The setup is supplied. These Mathlib modules provide `ring` and `rel`; the class files use the broader `import Mathlib`, which also works. From the project root you can compile your scratch file with `lake env lean path/to/file.lean`. The earlier sheets can be completed without Mathlib. The practice environment does not determine which imports your exam permits.
 
-## Q41 — Split a piecewise expression in the goal
+## Q01 — Split a piecewise expression in the goal
 
 Use `unfold selectSeven`, then `split`. In each branch choose the appropriate side of the disjunction and finish the equality. Do not replace the required `split` with `cases n`, `by_cases`, or one `simp`/`grind` call.
 
@@ -33,7 +33,7 @@ theorem selectSeven_alternatives (n : Nat) :
   sorry
 ```
 
-## Q42 — Split a piecewise expression in a hypothesis
+## Q02 — Split a piecewise expression in a hypothesis
 
 Unfold `marker` **at `h`**, then use `split at h`. Inspect the branch condition. One branch supplies the desired fact; the other branch has an impossible numeric equality and can be closed with `contradiction` or `simp at h`.
 
@@ -42,7 +42,7 @@ theorem marker_three (n : Nat) (h : marker n = 3) : n = 0 := by
   sorry
 ```
 
-## Q43 — Nested rcases patterns
+## Q03 — Nested rcases patterns
 
 Use `rcases` to extract a witness, its `P` evidence, and the two possible remaining alternatives. Rebuild the appropriate existential and disjunction. No `grind`.
 
@@ -53,7 +53,7 @@ theorem distribute_exists {α : Type} (P Q R : α → Prop) :
   sorry
 ```
 
-## Q44 — A constructor equality contains field equalities
+## Q04 — A constructor equality contains field equalities
 
 Use `simp at h` to expose the constructor's field equalities, then `rcases` to give them names. Rebuild the target with `constructor`. Read the type of `h` before and after simplification. No `injection` is required.
 
@@ -64,7 +64,7 @@ theorem parcel_fields (tag₁ tag₂ : Nat) (xs ys : List Nat)
   sorry
 ```
 
-## Q45 — Rewrite a hypothesis, including a backward rewrite
+## Q05 — Rewrite a hypothesis, including a backward rewrite
 
 Use `rw` **at `hxy`**, once backwards and once forwards, so that this hypothesis ends up with exactly the target type. Close with `exact`; do not simplify the entire context with `simp at *`.
 
@@ -75,7 +75,7 @@ theorem rename_endpoints {α β : Type} (f : α → β)
   sorry
 ```
 
-## Q46 — A calc chain carries equality through a function
+## Q06 — A calc chain carries equality through a function
 
 Use a `calc` block with at least three equality steps. Use `congrArg` and `Eq.symm` as proof terms somewhere in the chain. Do not solve the whole statement with `rw` or `grind`.
 
@@ -86,7 +86,7 @@ theorem function_calc {α β : Type} (f : α → β)
   sorry
 ```
 
-## Q47 — Show the algebra inside a calculation
+## Q07 — Show the algebra inside a calculation
 
 Use `calc` with at least two steps. One intermediate expression must use `(a + b) * (a + b)` instead of the square. You may use `pow_two` for that conversion and `ring` for polynomial identities. A single top-level `ring` would skip the intended practice.
 
@@ -96,7 +96,7 @@ theorem square_expansion (a b : ℤ) :
   sorry
 ```
 
-## Q48 — Combine ring equalities with an order step
+## Q08 — Combine ring equalities with an order step
 
 Use `calc`, passing through expressions written as `a + a + 3` and `b + b + 3`. Use `ring` for equality steps and `rel [hab]` for the inequality step. No top-level `omega` or `grind`.
 
@@ -106,7 +106,7 @@ theorem preserve_order (a b : ℤ) (hab : a ≤ b) :
   sorry
 ```
 
-## Q49 — Linear arithmetic automation
+## Q09 — Linear arithmetic automation
 
 Prove with `omega`. Then test `grind` on the same statement as a second attempt. Before either attempt, write the inequality chain that makes the theorem true; the goal is to recognize why linear arithmetic suffices.
 
@@ -116,7 +116,7 @@ theorem strict_gap (a b c : Nat) (hab : a ≤ b) (hbc : b + 3 ≤ c) :
   sorry
 ```
 
-## Q50 — Broadcast casework and walk through conjunctions
+## Q10 — Broadcast casework and walk through conjunctions
 
 Use `cases b <;> ...` so the next tactic sequence runs in both Boolean cases. Include `repeat'` and `first` to split conjunctions and close reflexive leaves. Do not use `simp` or `grind` for the main attempt.
 
@@ -135,4 +135,4 @@ theorem bool_bundle (b : Bool) :
 end MonDrills
 ```
 
-The questions are independent after the setup. Next: [Q51–60](05-mixed-practice.md).
+The questions are independent after the setup. Next: [Questions 01–10](05-mixed-practice.md).

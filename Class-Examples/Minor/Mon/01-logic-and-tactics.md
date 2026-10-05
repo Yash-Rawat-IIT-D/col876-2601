@@ -1,14 +1,14 @@
 # Questions 01–10: logic and tactic recall
 
-This is the starting sheet for **60 questions in five files**. The allocation is 10 logic questions, 15 induction questions, 15 questions about inductive types and predicates, 10 tactic drills, and 10 mixed questions. Each numbered heading is one question; helper declarations belong to that question.
+This is the starting sheet for **70 questions in five files**. The allocation is 10 logic questions, 15 induction questions, 25 questions about inductive types and predicates, 10 tactic drills, and 10 mixed questions. Each numbered heading is one question; helper declarations belong to that question.
 
 | Order | Questions | Sheet |
 |---|---|---|
 | 1 | 01–10 | This sheet: logic and tactic recall |
-| 2 | 11–25 | [Induction on Nat and List](02-induction.md) |
-| 3 | 26–40 | [Build inductive types and predicates](03-inductive-types-and-predicates.md) |
-| 4 | 41–50 | [Casework, rewriting, calculations, automation](04-tactic-drills.md) |
-| 5 | 51–60 | [Mixed practice](05-mixed-practice.md) |
+| 2 | 01–15 | [Induction on Nat and List](02-induction.md) |
+| 3 | 01–25 | [Build inductive types and predicates](03-inductive-types-and-predicates.md) |
+| 4 | 01–10 | [Casework, rewriting, calculations, automation](04-tactic-drills.md) |
+| 5 | 01–10 | [Mixed practice](05-mixed-practice.md) |
 
 The syllabus comes from [SOURCE_MAP.md](../Tactics/SOURCE_MAP.md), especially the entries marked **D**. These are newly written exercises based on those methods, rather than a selection from the generated `Practice/Problems` sheets. `rcases` is explicitly requested for practice and appears in class scratch work. Supporting conveniences such as `generalizing` are optional; no exercise requires `injection`.
 
@@ -133,4 +133,4 @@ Close your file with:
 end MonLogic
 ```
 
-Next: [Q11–25](02-induction.md). Keep your first attempts; they make useful revision material once the proof compiles.
+Next: [Questions 01–15](02-induction.md). Keep your first attempts; they make useful revision material once the proof compiles.
