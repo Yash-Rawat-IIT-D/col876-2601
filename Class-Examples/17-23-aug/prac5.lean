@@ -56,7 +56,7 @@ inductive day : Type where
   | sunday
 
 def nextDay : day -> day
-  | day.monday => .tuesday
+  | .monday => .tuesday
   | .tuesday => .wednesday
   | .wednesday => .thursday
   | .thursday => .friday
@@ -121,10 +121,7 @@ by
   theorem nextDays_fourth_try :
   nextDay (day.monday) = day.tuesday ∧ nextDay (day.tuesday) = day.wednesday ∧ nextDay (day.wednesday) = day.thursday :=
   by
-    try repeat
-    first
-    | rfl
-    | apply And.intro
+    try repeat (first | rfl | apply And.intro)
 
 -- What would happen if we reversed the order of the tactics inside first? (Try to copy over the code and run it if you do not have a good intuition for what might happen; ensure that it is removed in the final submission.) Why does this happen?
 

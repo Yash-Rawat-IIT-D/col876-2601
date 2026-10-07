@@ -163,5 +163,152 @@ theorem even_iff_witness (n : Nat) : EvenN n ↔ ∃ k : Nat, n = 2 * k := by
     exact (even_twice k)
   }
 
-end MonStructures
 
+namespace RegexPractice
+
+inductive Regex (α : Type) : Type where
+| empty                                         -- Nothing (phi)
+| eps                                           -- Empty Word []
+| atom (char : α)                               -- Single Character [a]
+| alt (lt : Regex α) (rt : Regex α)             -- Union
+| seq (first : Regex α) (second : Regex α)      -- Concatentation
+| star (body : Regex α)                         -- Kleene Star
+
+def nullable {α : Type} : Regex α → Bool        -- Does it accept empty word
+| .empty     => false
+| .eps       => true
+| .atom _    => false
+| .alt lt rt => (nullable lt) || (nullable rt)
+| .seq lt rt => (nullable lt) && (nullable rt)
+| .star _    => true
+
+inductive Matches {α : Type} : Regex α → List α → Prop where  -- Inductive Prop with proof certificates of Matching
+| eps : Matches Regex.eps []
+| atom     (x : α) : Matches (Regex.atom x) [x]
+| altLeft  (r s : Regex α) (word : List α) (hl : Matches r word) : Matches (Regex.alt r s) word
+| altRight (r s : Regex α) (word : List α) (hr : Matches s word) : Matches (Regex.alt r s) word
+| seq      (f s : Regex α) (u v : List α) (hf : Matches f u) (hs : Matches s v) : Matches (Regex.seq f s) (u ++ v)
+| starNil  (r : Regex α) : Matches (Regex.star r) []
+| starCons (r : Regex α) (u v : List α) (hu : Matches r u) (hv : Matches (Regex.star r) v) : Matches (Regex.star r) (u ++ v)
+
+-- Example
+
+#check (Regex.seq (Regex.alt (Regex.atom 1) (Regex.atom 2)) (Regex.atom 3)) -- [12]3
+
+theorem matches_choice_sequence :
+    Matches
+      (Regex.seq (Regex.alt (Regex.atom 1) (Regex.atom 2)) (Regex.atom 3))
+      [2, 3] := by
+
+    have h1 : Matches (Regex.atom 2) [2] := by constructor
+    have h2 : Matches (Regex.alt (Regex.atom 1) (Regex.atom 2)) [2] := by apply Matches.altRight; exact h1
+    have h3 : Matches (Regex.atom 3) [3] := by constructor
+    exact Matches.seq (Regex.alt (Regex.atom 1) (Regex.atom 2)) (Regex.atom 3) [2] [3] h2 h3
+
+theorem no_match_empty {α : Type} (word : List α) :
+    ¬ Matches (Regex.empty : Regex α) word := by
+  intro hp
+  cases hp -- This again works since Lean knows that Matches cannot have a proof where regex is Regex.empty
+
+theorem matches_alt_iff {α : Type} (r s : Regex α) (word : List α) :
+    Matches (Regex.alt r s) word ↔ (Matches r word ∨ Matches s word) := by
+  constructor
+  {
+    intro hrs -- Note that we can use cases or rcases to match based on structure which should be enough ?
+    rcases hrs
+    · left; assumption;
+    · right; assumption;
+  }
+  {
+    intro hrs
+    cases hrs with
+    | inl hr => apply Matches.altLeft; assumption
+    | inr hl => apply Matches.altRight; assumption
+  }
+
+theorem matches_seq_iff {α : Type} (r s : Regex α) (word : List α) :
+    Matches (Regex.seq r s) word ↔
+      ∃ u v : List α, word = u ++ v ∧ Matches r u ∧ Matches s v := by
+  constructor
+  {
+    intro hrs
+    cases hrs with
+    | seq f s u v hf hs => exists u; exists v
+  }
+  {
+    intro hrs
+    obtain ⟨u,v,huv⟩ := hrs
+    rw [huv.left]
+    exact Matches.seq r s u v huv.right.left huv.right.right
+  }
+
+theorem matches_star_once {α : Type} (r : Regex α) (word : List α) :
+    Matches r word → Matches (Regex.star r) word := by
+  intro hr
+  have hrnil : Matches (Regex.star r) [] := by constructor
+  rw [← List.append_nil word]
+  exact Matches.starCons r word [] hr hrnil
+
+def rename {α β : Type} (f : α → β) : Regex α → Regex β
+| .empty => .empty
+| .eps => .eps
+| .atom (char : α) => .atom (f char)
+| .alt (lt : Regex α) (rt : Regex α) => .alt (rename f lt) (rename f rt)
+| .seq (first : Regex α) (second : Regex α) => .seq (rename f first) (rename f second)
+| .star (body : Regex α) => .star (rename f body)
+
+theorem nullable_rename {α β : Type} (f : α → β) (r : Regex α) :
+    nullable (rename f r) = nullable r := by
+
+  induction r with
+  | empty | eps | atom x => simp [rename]; rfl -- Handle Multiple cases like this
+  | alt lt rt Ihl Ihr | seq lt rt Ihl Ihr => simp [rename, nullable, Ihl, Ihr]
+  | star body Ihb => simp [rename, nullable]
+
+theorem append_empty_parts {α : Type} (u v : List α) :
+    u ++ v = [] → u = [] ∧ v = [] := by
+  exact List.eq_nil_of_append_eq_nil
+
+theorem matches_empty_iff_nullable {α : Type} (r : Regex α) :
+    Matches r [] ↔ nullable r = true := by
+  constructor
+  {
+    induction r with
+    | empty => simp [nullable]; exact no_match_empty []
+    | eps => intro heps; constructor
+    | atom x => simp [nullable]; intro hxe; cases hxe
+    | alt lt rt Ihl Ihr => intro haltm
+                           cases haltm with
+                           | altLeft  _ _ _ hl => simp [nullable];
+                                                  left; exact Ihl hl
+                           | altRight _ _ _ hr => simp [nullable];
+                                                  right; exact Ihr hr
+    | seq f s Ihf Ihs =>  intro hseqm
+                          obtain ⟨u, v, huv, hf, hs⟩ :=
+                            (matches_seq_iff f s []).mp hseqm
+                          obtain ⟨hu, hv⟩ := append_empty_parts u v huv.symm
+                          subst u
+                          subst v
+                          simp [nullable, Ihf hf, Ihs hs]
+    | star body Ihb => intro hbs; constructor
+  }
+  {
+    intro hnr
+    induction r with
+    | empty => contradiction
+    | eps => constructor
+    | atom x => contradiction
+    | alt lt rt Ihl Ihr => simp [nullable] at hnr
+                           cases hnr with
+                           | inl hlt => apply Matches.altLeft; exact Ihl hlt
+                           | inr hrt => apply Matches.altRight; exact Ihr hrt
+    | seq f s Ihf Ihs => simp [nullable] at hnr
+                         have ht : Matches (Regex.seq f s) ([] ++ []) := by exact Matches.seq f s [] [] (Ihf hnr.left) (Ihs hnr.right)
+                         rw [List.append_nil] at ht
+                         exact ht
+    | star body Ihb => exact Matches.starNil body
+  }
+
+
+end RegexPractice
+end MonStructures
